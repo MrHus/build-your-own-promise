@@ -1,0 +1,21 @@
+{
+  "name": "mad-promise",
+  "version": "1.0.0",
+  "description": "Implementing promises for educational purposes.",
+  "scripts": {
+    "start": "jest --watch",
+    "test": "jest --coverage"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "author": "Maarten Hus",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "6.26.3",
+    "babel-jest": "23.4.2",
+    "babel-preset-env": "1.7.0",
+    "jest": "23.4.2",
+    "regenerator-runtime": "0.12.1"
+  }
+}
