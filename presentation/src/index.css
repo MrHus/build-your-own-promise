@@ -3,3 +3,40 @@ body {
   padding: 0;
   font-family: sans-serif;
 }
+
+@import url(https://fonts.googleapis.com/css?family=Montserrat:400,700);
+
+.button {
+  padding: 14px 0;
+  border: 2px steelblue solid;
+  color: steelblue;
+  cursor: pointer;
+  font-family: 'Montserrat', 'helvetica neue', helvetica, arial, sans-serif;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  transition: color 0.4s, background-color 0.4s;
+  border-radius: 2px;
+  line-height: 1em;
+  outline: none;
+  text-align: center;
+  user-select: none;
+  width: 210px;
+}
+.button:hover,
+.button:focus {
+  transition: color 0.4s, background-color 0.4s;
+  color: white;
+  text-decoration: none;
+  background-color: steelblue;
+}
+
+.log {
+  height: 200px;
+  overflow: auto;
+}
+
+.log li {
+  list-style: none;
+  font-family: 'Monaco', Courier, monospace;
+  font-size: 14px;
+}

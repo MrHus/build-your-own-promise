@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "animate.css": "3.7.0",
     "d3": "5.6.0",
     "react": "16.4.2",
+    "react-ace": "6.1.4",
     "react-dom": "16.4.2",
     "react-scripts": "1.1.5"
   },

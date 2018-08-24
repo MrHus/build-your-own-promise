@@ -1,54 +1,85 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import * as d3 from 'd3';
 
-const width = 1400;
 const height = 700;
-
-const treeCreator = d3.tree().size([width, height - 100]);
 
 export default class Visualizer extends Component {
   state = {
-    tree: null
+    tree: null,
+    log: []
   };
 
   componentDidMount() {
+    this.execute();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      prevProps.code !== this.props.code ||
+      prevProps.width !== this.props.width
+    ) {
+      this.execute();
+    }
+  }
+
+  execute() {
+    this.setState({ tree: null, log: [] });
+
     let data = null;
 
-    const updateTree = this.updateTree.bind(this);
+    let chainId = null;
 
-    function visualize(node) {
-      if (!node.children) {
-        node.children = [];
+    const self = this;
+
+    function visualize(promise) {
+      // Create a copy of the node for the log.
+      const logItem = { ...promise };
+
+      if (!promise.children) {
+        promise.children = [];
       }
 
       // The first node becomes the root node.
       if (data === null) {
-        data = node;
+        data = promise;
+        chainId = promise.chainId;
       } else {
-        const childNode = find(data, node.name);
+        // Ignore chains we are not currently visualizing.
+        if (chainId !== promise.chainId) {
+          return;
+        }
+
+        const currentPromise = find(data, promise.name);
 
         // If the child has not been added yet add it to the parent.
-        if (childNode === false) {
-          const parentNode = find(data, node.parent);
-          parentNode.children.push(node);
+        if (currentPromise === false) {
+          const parentPromise = find(data, promise.parent);
+
+          parentPromise.children.push(promise);
         } else {
           // Simply update the status.
-          childNode.status = node.status;
-          childNode.value = node.value;
+          currentPromise.status = promise.status;
+          currentPromise.value = promise.value;
         }
       }
 
-      updateTree(data);
+      const treeCreator = d3.tree().size([self.props.width, height - 100]);
+      const root = d3.hierarchy(data);
+      const tree = treeCreator(root);
+
+      // But ugly directly manipulating the state but otherwise we get timing errors.
+      self.state.log.push(logItem);
+
+      self.setState({ tree, log: self.state.log });
     }
 
     this.props.chain(visualize);
   }
 
-  updateTree(data) {
-    const root = d3.hierarchy(data);
-    const tree = treeCreator(root);
-
-    this.setState({ tree });
+  scrollDown(node) {
+    if (node) {
+      node.scrollTop = node.scrollHeight;
+    }
   }
 
   render() {
@@ -57,14 +88,17 @@ export default class Visualizer extends Component {
     }
 
     return (
-      <svg
-        width={width}
-        height={height}
-        style={{ display: 'block', margin: 'auto' }}
-      >
-        <g>{this.renderLinks()}</g>
-        <g>{this.renderNodes()}</g>
-      </svg>
+      <Fragment>
+        <svg
+          width={this.props.width}
+          height={height}
+          style={{ display: 'block', margin: 'auto' }}
+        >
+          <g>{this.renderLinks()}</g>
+          <g>{this.renderNodes()}</g>
+        </svg>
+        {this.renderLog()}
+      </Fragment>
     );
   }
 
@@ -72,9 +106,17 @@ export default class Visualizer extends Component {
     return this.state.tree.descendants().map(node => {
       const transform = `translate(${node.x},${node.y + 50})`;
 
+      const className =
+        node.data.status === 'PENDING' ? '' : 'animated rubberBand';
+
       return (
         <g className="node" key={node.data.name} transform={transform}>
-          <circle r="25" strokeWidth="2" fill={color(node.data.status)} />
+          <circle
+            className={className}
+            r="25"
+            strokeWidth="2"
+            fill={color(node.data.status)}
+          />
 
           <text textAnchor="middle" fill="white" dy=".3em">
             {node.data.name}
@@ -111,7 +153,7 @@ export default class Visualizer extends Component {
             </defs>
           </defs>
           <line
-            stroke="#ccc"
+            stroke={color(link.source.data.status)}
             strokeWidth={link.size}
             x1={link.source.x}
             x2={link.target.x}
@@ -122,6 +164,28 @@ export default class Visualizer extends Component {
         </g>
       );
     });
+  }
+
+  renderLog() {
+    return (
+      <ul ref={node => this.scrollDown(node)} className="log">
+        {this.state.log.map(promise => {
+          const value =
+            promise.status !== 'PENDING' ? ` with value: ${promise.value}` : '';
+
+          return (
+            <li key={`${promise.name}-${promise.status}`}>
+              {promise.time.toLocaleTimeString()}: <b>{promise.name}</b> -{' '}
+              <span style={{ color: color(promise.status) }}>
+                {promise.status}
+              </span>
+
+              {value}
+            </li>
+          );
+        })}
+      </ul>
+    );
   }
 }
 

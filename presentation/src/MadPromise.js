@@ -1,4 +1,21 @@
-let name = 'A';
+/*
+   This promise implementation allows for visualization through a
+   visualizer, which is a function which needs to be set on
+   window.MadPromise.visualize, this function will get called
+   each time the promise changes status.
+
+   The `visualize` function gets called with a single argument
+   which is an object which contains the following data:
+
+   {
+    name: string      // The name of the promise, a letter of the alphabet.
+    parent: string    // The parent of the promise, which is also a letter of the alphabet
+    status: string    // The status of the promise either: 'PENDING', 'RESOLVED', 'REJECTED'
+    chainId: number   // The id of the promise chain this promise is a part of.
+    value: *          // The current value of the promise, is undefined when 'PENDING'.
+    time: Date        // The time at which the call to visualize was made.
+  }
+*/
 
 function isMadPromise(object) {
   return (
@@ -8,19 +25,28 @@ function isMadPromise(object) {
   );
 }
 
-export function MadPromise(visualize, deferred, parent) {
+let id = 0;
+let name = 'A';
+
+export function MadPromise(deferred, parent, chainId) {
   let status = 'PENDING';
   let value = null;
   let callbacks = [];
 
-  const promiseName = name;
-
-  if (visualize === null) {
-    visualize = () => undefined;
+  if (chainId === undefined) {
+    chainId = id;
+    id += 1;
   }
 
-  visualize({ name: promiseName, parent, status: 'PENDING' });
-  name = nextName(name);
+  const promiseName = nextName();
+
+  MadPromise.visualize({
+    name: promiseName,
+    parent,
+    status: 'PENDING',
+    chainId,
+    time: new Date()
+  });
 
   function handleCallback({ resolve, onResolve, reject, onReject }) {
     setTimeout(() => {
@@ -61,7 +87,14 @@ export function MadPromise(visualize, deferred, parent) {
 
     value = v;
 
-    visualize({ name: promiseName, status, value: v });
+    MadPromise.visualize({
+      name: promiseName,
+      parent,
+      chainId,
+      status,
+      value: v,
+      time: new Date()
+    });
 
     callbacks.forEach(handleCallback);
     callbacks = null;
@@ -76,9 +109,14 @@ export function MadPromise(visualize, deferred, parent) {
 
     value = e;
 
-    console.log(e);
-
-    visualize({ name: promiseName, status, value: e });
+    MadPromise.visualize({
+      name: promiseName,
+      parent,
+      chainId,
+      status,
+      value: e,
+      time: new Date()
+    });
 
     callbacks.forEach(handleCallback);
     callbacks = null;
@@ -86,7 +124,6 @@ export function MadPromise(visualize, deferred, parent) {
 
   function then(onResolve, onReject = e => e) {
     return MadPromise(
-      visualize,
       (resolve, reject) => {
         const callback = { resolve, onResolve, reject, onReject };
 
@@ -96,7 +133,8 @@ export function MadPromise(visualize, deferred, parent) {
           handleCallback(callback);
         }
       },
-      promiseName
+      promiseName,
+      chainId
     );
   }
 
@@ -112,6 +150,12 @@ export function MadPromise(visualize, deferred, parent) {
   };
 }
 
-function nextName(c) {
-  return String.fromCharCode(c.charCodeAt(0) + 1);
+function nextName() {
+  const current = name;
+  name = String.fromCharCode(name.charCodeAt(0) + 1);
+  return current;
+}
+
+export function resetName() {
+  name = 'A';
 }
