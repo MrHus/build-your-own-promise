@@ -7,78 +7,38 @@ import { MadPromise, resetName } from './MadPromise';
 
 import '../node_modules/animate.css';
 
-const initialCode = `
-const a = MadPromise((resolve, reject) => {
-  setTimeout(() => {
-    resolve(1);
-  }, 2000);
-});
+import simpleThen from './examples/simple-then';
+import simpleCatch from './examples/simple-catch';
+import thenChain from './examples/then-chain';
+import complexTree from './examples/complex-tree';
 
-const b = a.then(() => {
-  return MadPromise(resolve => {
-    setTimeout(() => {
-      resolve(2);
-    }, 2000);
-  });
-});
-
-const c = a.then(() => {
-  return MadPromise(resolve => {
-    setTimeout(() => {
-      resolve(3);
-    }, 2000);
-  });
-});
-
-const b1 = b.then(() => {
-  return MadPromise(resolve => {
-    setTimeout(() => {
-      resolve(4);
-    }, 1000);
-  });
-});
-
-const b2 = b.then(() => {
-  return MadPromise(resolve => {
-    setTimeout(() => {
-      resolve(5);
-    }, 2000);
-  });
-});
-
-const b3 = b.then(() => {
-  return MadPromise(resolve => {
-    setTimeout(() => {
-      resolve(6);
-    }, 3000);
-  });
-});
-
-const b21 = b2.then(() => {
-  return MadPromise(resolve => {
-    setTimeout(() => {
-      resolve(7);
-    }, 2000);
-  });
-});
-
-const b22 = b2.then(() => {
-  return MadPromise(resolve => {
-    setTimeout(() => {
-      resolve(8);
-    }, 2000);
-  });
-});
-`;
+const examples = [
+  { name: 'Simple then', code: simpleThen },
+  { name: 'Simple catch', code: simpleCatch },
+  { name: 'Then chain', code: thenChain },
+  { name: 'Complex tree', code: complexTree }
+];
 
 const EDITOR_WIDTH = 550;
 
 export default class App extends Component {
   state = {
-    code: initialCode,
+    code: simpleThen,
     visualizerWidth: 0,
-    hasError: false
+    hasError: false,
+    showEditor: true
   };
+
+  onSelectExample(index) {
+    // Hide the editor temporarily so it renders with the new code.
+    this.setState({ showEditor: false });
+
+    this.executeCode(examples[index].code);
+
+    setTimeout(() => {
+      this.setState({ showEditor: true });
+    }, 200);
+  }
 
   executeCode(code) {
     // First set the code to blank to hide the current visualization
@@ -102,21 +62,36 @@ export default class App extends Component {
 
   render() {
     return (
-      <Fragment>
-        <div style={{ width: EDITOR_WIDTH, float: 'left' }}>
-          <Editor
-            width={EDITOR_WIDTH}
-            code={this.state.code}
-            onExecute={code => this.executeCode(code)}
-          />
+      <div className="IDE">
+        <div className="card" style={{ width: EDITOR_WIDTH, float: 'left' }}>
+          <span className="card-title">CODE</span>
+          <div className="select-wrapper">
+            <select
+              className="select"
+              onChange={event => this.onSelectExample(event.target.value)}
+            >
+              {examples.map((example, index) => (
+                <option key={index} value={index}>
+                  {example.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {this.state.showEditor ? (
+            <Editor
+              width={EDITOR_WIDTH}
+              code={this.state.code}
+              onExecute={code => this.executeCode(code)}
+            />
+          ) : null}
         </div>
         <div
           ref={node => this.calculateWidthForVisualizer(node)}
-          style={{ width: `calc(100% - ${EDITOR_WIDTH}px)`, float: 'left' }}
+          style={{ width: `calc(100% - ${EDITOR_WIDTH + 20}px)` }}
         >
           {this.state.hasError ? this.renderError() : this.renderVisualizer()}
         </div>
-      </Fragment>
+      </div>
     );
   }
 
@@ -129,7 +104,7 @@ export default class App extends Component {
       <Visualizer
         width={this.state.visualizerWidth}
         code={this.state.code}
-        chain={visualize => {
+        chain={(visualize, LOGGER) => {
           // Make MadPromise available under window, because webpack
           // rewrites the name.
           window.MadPromise = MadPromise;

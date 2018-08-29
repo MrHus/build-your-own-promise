@@ -28,12 +28,12 @@ export default class Editor extends Component {
           onChange={code => this.codeChanged(code)}
           name="UNIQUE_ID_OF_DIV"
           fontSize={16}
-          height="calc(100vh - 100px"
-          width={`${this.props.width}px`}
+          height="calc(100vh - 200px)"
+          width="550px"
           value={this.state.code}
           editorProps={{ $blockScrolling: true }}
         />
-        <div style={{ textAlign: 'center', marginTop: '20px'}}>
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
           <button className="button" onClick={() => this.executeClicked()}>
             Execute
           </button>

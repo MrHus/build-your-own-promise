@@ -1,13 +1,16 @@
 import React, { Component, Fragment } from 'react';
 import * as d3 from 'd3';
 
-const height = 700;
+const consoleHeight = 200;
 
 export default class Visualizer extends Component {
   state = {
     tree: null,
     log: []
   };
+
+  // 80 is a magic number to make everything fit :P
+  graphHeight = window.innerHeight - consoleHeight - 114;
 
   componentDidMount() {
     this.execute();
@@ -33,7 +36,7 @@ export default class Visualizer extends Component {
 
     function visualize(promise) {
       // Create a copy of the node for the log.
-      const logItem = { ...promise };
+      const logItem = { promise: { ...promise }, type: 'promise' };
 
       if (!promise.children) {
         promise.children = [];
@@ -63,7 +66,9 @@ export default class Visualizer extends Component {
         }
       }
 
-      const treeCreator = d3.tree().size([self.props.width, height - 100]);
+      const treeCreator = d3
+        .tree()
+        .size([self.props.width, self.graphHeight - 100]);
       const root = d3.hierarchy(data);
       const tree = treeCreator(root);
 
@@ -73,7 +78,21 @@ export default class Visualizer extends Component {
       self.setState({ tree, log: self.state.log });
     }
 
-    this.props.chain(visualize);
+    function info(message) {
+      // But ugly directly manipulating the state but otherwise we get timing errors.
+      self.state.log.push({ type: 'console', message, level: 'info' });
+
+      self.setState({ log: self.state.log });
+    }
+
+    function error(message) {
+      // But ugly directly manipulating the state but otherwise we get timing errors.
+      self.state.log.push({ type: 'console', message, level: 'error' });
+
+      self.setState({ log: self.state.log });
+    }
+
+    this.props.chain(visualize, { info, error });
   }
 
   scrollDown(node) {
@@ -89,16 +108,29 @@ export default class Visualizer extends Component {
 
     return (
       <Fragment>
-        <svg
-          width={this.props.width}
-          height={height}
-          style={{ display: 'block', margin: 'auto' }}
-        >
-          <g>{this.renderLinks()}</g>
-          <g>{this.renderNodes()}</g>
-        </svg>
-        {this.renderLog()}
+        <div className="card">
+          <span className="card-title">GRAPH</span>
+          {this.renderGraph()}
+        </div>
+
+        <div className="card">
+          <span className="card-title">CONSOLE</span>
+          {this.renderLog()}
+        </div>
       </Fragment>
+    );
+  }
+
+  renderGraph() {
+    return (
+      <svg
+        width={this.props.width}
+        height={this.graphHeight}
+        style={{ display: 'block', margin: 'auto' }}
+      >
+        <g>{this.renderLinks()}</g>
+        <g>{this.renderNodes()}</g>
+      </svg>
     );
   }
 
@@ -167,22 +199,36 @@ export default class Visualizer extends Component {
   }
 
   renderLog() {
+    const animation = 'animated slideInLeft';
+
     return (
       <ul ref={node => this.scrollDown(node)} className="log">
-        {this.state.log.map(promise => {
-          const value =
-            promise.status !== 'PENDING' ? ` with value: ${promise.value}` : '';
+        {this.state.log.map((logItem, index) => {
+          if (logItem.type === 'console') {
+            return (
+              <li key={index} className={animation}>
+                {new Date().toLocaleTimeString()}: {logItem.level.toUpperCase()}{' '}
+                {JSON.stringify(logItem.message)}
+              </li>
+            );
+          } else {
+            const promise = logItem.promise;
 
-          return (
-            <li key={`${promise.name}-${promise.status}`}>
-              {promise.time.toLocaleTimeString()}: <b>{promise.name}</b> -{' '}
-              <span style={{ color: color(promise.status) }}>
-                {promise.status}
-              </span>
+            const value =
+              promise.status !== 'PENDING'
+                ? ` ${JSON.stringify(promise.value)}`
+                : '';
 
-              {value}
-            </li>
-          );
+            return (
+              <li key={index} className={animation}>
+                {promise.time.toLocaleTimeString()}: <b>({promise.name})</b> -{' '}
+                <span style={{ color: color(promise.status) }}>
+                  {promise.status}
+                </span>
+                {value}
+              </li>
+            );
+          }
         })}
       </ul>
     );
@@ -213,8 +259,8 @@ function color(status) {
   if (status === 'PENDING') {
     return 'steelblue';
   } else if (status === 'RESOLVED') {
-    return 'green';
+    return 'limegreen';
   } else {
-    return 'red';
+    return 'crimson';
   }
 }

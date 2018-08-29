@@ -2,9 +2,15 @@ body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
+  background-color: #e2e1e0;
 }
 
 @import url(https://fonts.googleapis.com/css?family=Montserrat:400,700);
+
+.IDE {
+  display: flex;
+  height: calc(100vh - 4px);
+}
 
 .button {
   padding: 14px 0;
@@ -47,4 +53,69 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
+}
+
+.select-wrapper {
+  padding: 10px;
+}
+
+.select-wrapper:after {
+  position: relative;
+  content: '\2193';
+  pointer-events: none;
+  float: right;
+  top: -33px;
+  left: -10px;
+  font-size: 18px;
+  transition: color 0.4s, color 0.4s;
+}
+
+.select-wrapper:hover:after {
+  color: white;
+}
+
+.select {
+  padding-left: 16px;
+  height: 46px;
+  user-select: none;
+  outline: none;
+  width: 210px;
+  appearance: none;
+  width: 100%;
+  border: 2px steelblue solid;
+  color: steelblue;
+  border-radius: 0;
+  font-family: 'Montserrat', 'helvetica neue', helvetica, arial, sans-serif;
+  font-size: 0.9em;
+  transition: color 0.4s, background-color 0.4s;
+  background-color: white;
+}
+
+.select:hover {
+  transition: color 0.4s, background-color 0.4s;
+  color: white;
+  text-decoration: none;
+  background-color: steelblue;
+}
+
+.card {
+  width: 100%;
+  background: #fff;
+  border-radius: 2px;
+  display: inline-block;
+  margin: 5px;
+  position: relative;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+}
+
+.card-title {
+  background-color: steelblue;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: white;
+  font-family: 'Montserrat', 'helvetica neue', helvetica, arial, sans-serif;
+  width: 100%;
+  display: inline-block;
+  width: calc(100% - 10px);
+  padding: 5px 0px 5px 10px;
 }
