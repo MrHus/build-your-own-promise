@@ -1,17 +1,21 @@
 const code = `
-const a = MadPromise(resolve => {
+const p = MadPromise((resolve, reject) => {
   setTimeout(() => { 
-    resolve(42)
-  }, 1000);
+    reject("Some error");
+  }, 2000);
 });
 
-a.then(v => v * 2)
+p.then(v => v * 2)
   .then(age => ({
     name: 'Maarten Hus',
     age
   }))
   .then(person => {
     LOGGER.info(person);
+  })
+  .catch(error => {
+    LOGGER.error(error);
+    return error;
   });
 `;
 

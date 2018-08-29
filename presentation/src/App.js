@@ -10,12 +10,26 @@ import '../node_modules/animate.css';
 import simpleThen from './examples/simple-then';
 import simpleCatch from './examples/simple-catch';
 import thenChain from './examples/then-chain';
+import thenChainSingleCatch from './examples/then-chain-single-catch';
+import thenChainErrorInThen from './examples/then-chain-error-in-then';
+import errorRecovery from './examples/error-recovery';
+import promiseChain from './examples/promise-chain';
+import promiseChainWithErrors from './examples/promise-chain-with-errors';
 import complexTree from './examples/complex-tree';
+import deterministicOrder from './examples/deterministic-order';
+import promiseCache from './examples/promise-cache';
 
 const examples = [
   { name: 'Simple then', code: simpleThen },
   { name: 'Simple catch', code: simpleCatch },
   { name: 'Then chain', code: thenChain },
+  { name: 'Then chain catching errors', code: thenChainSingleCatch },
+  { name: 'Then chain error in then', code: thenChainErrorInThen },
+  { name: 'Error recovery', code: errorRecovery },
+  { name: 'Deterministic order', code: deterministicOrder },
+  { name: 'Promises are cachable', code: promiseCache },
+  { name: 'Promise chain', code: promiseChain },
+  { name: 'Promise chain with errors', code: promiseChainWithErrors },
   { name: 'Complex tree', code: complexTree }
 ];
 

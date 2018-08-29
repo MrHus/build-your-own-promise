@@ -1,7 +1,7 @@
 const code = `
 const a = MadPromise((resolve, reject) => {
   setTimeout(() => {
-    reject(1);
+    reject("Some error");
   }, 2000);
 });
 
