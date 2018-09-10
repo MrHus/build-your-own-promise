@@ -9,7 +9,7 @@ export default class Visualizer extends Component {
     log: []
   };
 
-  // 80 is a magic number to make everything fit :P
+  // 114 is a magic number to make everything fit :P
   graphHeight = window.innerHeight - consoleHeight - 114;
 
   componentDidMount() {
