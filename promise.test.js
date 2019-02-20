@@ -265,3 +265,68 @@ describe('MadPromise', () => {
     });
   });
 });
+
+describe('MadPromise.all', () => {
+  it('should resolve with an array of values when all promises are resolved', done => {
+    const a = MadPromise(resolve => {
+      setTimeout(() => resolve('a'), 100);
+    });
+
+    const b = MadPromise(resolve => {
+      setTimeout(() => resolve('b'), 100);
+    });
+
+    MadPromise.all([a, b]).then(([aValue, bValue]) => {
+      expect(aValue).toBe('a');
+      expect(bValue).toBe('b');
+      done();
+    });
+  });
+
+  it('should reject when one of the promises is rejected', done => {
+    const a = MadPromise((resolve, reject) => {
+      setTimeout(() => reject('a'), 100);
+    });
+
+    const b = MadPromise(resolve => {
+      setTimeout(() => resolve('b'), 100);
+    });
+
+    MadPromise.all([a, b]).catch(e => {
+      expect(e).toBe('a');
+      done();
+    });
+  });
+});
+
+describe('MadPromise.race', () => {
+  it('should resolve with the first complete promise', done => {
+    const a = MadPromise(resolve => {
+      setTimeout(() => resolve('a'), 100);
+    });
+
+    const b = MadPromise(resolve => {
+      setTimeout(() => resolve('b'), 50);
+    });
+
+    MadPromise.race([a, b]).then(value => {
+      expect(value).toBe('b');
+      done();
+    });
+  });
+
+  it('should reject when one of the promises is rejected', done => {
+    const a = MadPromise((resolve, reject) => {
+      setTimeout(() => reject('a'), 50);
+    });
+
+    const b = MadPromise(resolve => {
+      setTimeout(() => resolve('b'), 100);
+    });
+
+    MadPromise.race([a, b]).catch(e => {
+      expect(e).toBe('a');
+      done();
+    });
+  });
+});

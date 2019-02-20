@@ -92,3 +92,48 @@ export function MadPromise(deferred) {
     catch: _catch
   };
 }
+
+MadPromise.all = function(promises) {
+  let promisesResolved = 0;
+
+  return MadPromise((resolve, reject) => {
+    const results = [];
+
+    promises.forEach((promise, index) => {
+      promise
+        .then(value => {
+          promisesResolved += 1;
+          results[index] = value;
+
+          if (promisesResolved === promises.length) {
+            resolve(results);
+          }
+        })
+        .catch(error => {
+          reject(error);
+        });
+    });
+  });
+};
+
+MadPromise.race = function(promises) {
+  let done = false;
+
+  return MadPromise((resolve, reject) => {
+    promises.forEach(promise => {
+      promise
+        .then(value => {
+          if (!done) {
+            done = true;
+            resolve(value);
+          }
+        })
+        .catch(error => {
+          if (!done) {
+            done = true;
+            reject(error);
+          }
+        });
+    });
+  });
+};
