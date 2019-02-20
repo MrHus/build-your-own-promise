@@ -1,5 +1,5 @@
-/coverage
-/node_modules
+/build-your-own/coverage
+/build-your-own/node_modules
 
-/presentation/node_modules
-/presentation/coverage
+/promise-ide/node_modules
+/promise-ide/coverage

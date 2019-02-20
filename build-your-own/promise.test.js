@@ -1,5 +1,7 @@
 'use strict';
 
+// Set jest's timeout to 200 milliseconds so tests do not run
+// to long, all tests finish within 200 milliseconds.
 jest.setTimeout(200);
 
 import { MadPromise } from './promise';
@@ -167,24 +169,47 @@ describe('MadPromise', () => {
     it('should handle promise callbacks in a deterministic manner, to prevent race condition bugs', done => {
       const log = [];
 
+      /* 
+        A contrived example of how loading is true when the promise
+        is immediately resolved, but false when it uses a timeout.
+      */
+      let loading;
+
       log.push('a');
       const p = MadPromise(resolve => {
         log.push('b');
+        // This is immediately resolved
         resolve(42);
+
+        // This is resolved after a timeout
+        //setTimeout(() => resolve(42), 100);
       });
 
       p.then(v => {
+        loading = false;
         log.push('c');
-        expect(log).toEqual(['a', 'b', 'd', 'c']);
-        done();
+
+        // Wait one 'tick' before checking the outcome
+        setTimeout(() => {
+          expect({ log, loading }).toEqual({
+            log: ['a', 'b', 'd', 'c'],
+            loading: false
+          });
+          done();
+        }, 1);
+      }).catch(e => {
+        done.fail(e);
       });
 
       log.push('d');
+
+      // A bit stupid to set loading to true here but it proves the point.
+      loading = true;
     });
 
     it('should only allow a state transitions to "RESOLVED" to occur once, to prevent strange bugs', done => {
       try {
-        const p = MadPromise(resolve => {
+        MadPromise(resolve => {
           resolve(42);
           resolve(1337);
         });
@@ -196,7 +221,7 @@ describe('MadPromise', () => {
 
     it('should only allow a state transitions to "REJECTED" to occur once, to prevent strange bugs', done => {
       try {
-        const p = MadPromise((resolve, reject) => {
+        MadPromise((resolve, reject) => {
           reject(42);
           reject(1337);
         });
@@ -273,26 +298,35 @@ describe('MadPromise.all', () => {
     });
 
     const b = MadPromise(resolve => {
-      setTimeout(() => resolve('b'), 100);
+      setTimeout(() => resolve('b'), 50);
     });
 
-    MadPromise.all([a, b]).then(([aValue, bValue]) => {
+    const c = MadPromise(resolve => {
+      setTimeout(() => resolve('c'), 75);
+    });
+
+    MadPromise.all([a, b, c]).then(([aValue, bValue, cValue]) => {
       expect(aValue).toBe('a');
       expect(bValue).toBe('b');
+      expect(cValue).toBe('c');
       done();
     });
   });
 
   it('should reject when one of the promises is rejected', done => {
     const a = MadPromise((resolve, reject) => {
-      setTimeout(() => reject('a'), 100);
+      setTimeout(() => reject('a'), 50);
     });
 
     const b = MadPromise(resolve => {
       setTimeout(() => resolve('b'), 100);
     });
 
-    MadPromise.all([a, b]).catch(e => {
+    const c = MadPromise((resolve, reject) => {
+      setTimeout(() => reject('c'), 75);
+    });
+
+    MadPromise.all([a, b, c]).catch(e => {
       expect(e).toBe('a');
       done();
     });
@@ -309,24 +343,42 @@ describe('MadPromise.race', () => {
       setTimeout(() => resolve('b'), 50);
     });
 
-    MadPromise.race([a, b]).then(value => {
+    const c = MadPromise((resolve, reject) => {
+      setTimeout(() => reject('c'), 75);
+    });
+
+    MadPromise.race([a, b, c]).then(value => {
       expect(value).toBe('b');
-      done();
+
+      // Wait for the race to be over before declaring done
+      // to guarantee that `resolve` is only called once.
+      setTimeout(() => {
+        done();
+      }, 100);
     });
   });
 
   it('should reject when one of the promises is rejected', done => {
-    const a = MadPromise((resolve, reject) => {
-      setTimeout(() => reject('a'), 50);
+    const a = MadPromise(resolve => {
+      setTimeout(() => resolve('a'), 100);
     });
 
-    const b = MadPromise(resolve => {
-      setTimeout(() => resolve('b'), 100);
+    const b = MadPromise((resolve, reject) => {
+      setTimeout(() => reject('b'), 50);
     });
 
-    MadPromise.race([a, b]).catch(e => {
-      expect(e).toBe('a');
-      done();
+    const c = MadPromise((resolve, reject) => {
+      setTimeout(() => reject('c'), 75);
+    });
+
+    MadPromise.race([a, b, c]).catch(e => {
+      expect(e).toBe('b');
+
+      // Wait for the race to be over before declaring done
+      // to guarantee that `reject` is only called once.
+      setTimeout(() => {
+        done();
+      }, 100);
     });
   });
 });

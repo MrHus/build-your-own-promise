@@ -95,6 +95,7 @@ export function MadPromise(deferred) {
 
 MadPromise.all = function(promises) {
   let promisesResolved = 0;
+  let rejected = false;
 
   return MadPromise((resolve, reject) => {
     const results = [];
@@ -110,7 +111,10 @@ MadPromise.all = function(promises) {
           }
         })
         .catch(error => {
-          reject(error);
+          if (!rejected) {
+            rejected = true;
+            reject(error);
+          }
         });
     });
   });
@@ -129,6 +133,7 @@ MadPromise.race = function(promises) {
           }
         })
         .catch(error => {
+          console.log('race', done);
           if (!done) {
             done = true;
             reject(error);
