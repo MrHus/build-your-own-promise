@@ -188,15 +188,6 @@ describe('MadPromise', () => {
       p.then(v => {
         loading = false;
         log.push('c');
-
-        // Wait one 'tick' before checking the outcome
-        setTimeout(() => {
-          expect({ log, loading }).toEqual({
-            log: ['a', 'b', 'd', 'c'],
-            loading: false
-          });
-          done();
-        }, 1);
       }).catch(e => {
         done.fail(e);
       });
@@ -205,6 +196,15 @@ describe('MadPromise', () => {
 
       // A bit stupid to set loading to true here but it proves the point.
       loading = true;
+
+      // Wait before checking the outcome
+      setTimeout(() => {
+        expect({ log, loading }).toEqual({
+          log: ['a', 'b', 'd', 'c'],
+          loading: false
+        });
+        done();
+      }, 150);
     });
 
     it('should only allow a state transitions to "RESOLVED" to occur once, to prevent strange bugs', done => {
