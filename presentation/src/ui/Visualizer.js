@@ -108,10 +108,12 @@ export default class Visualizer extends Component {
 
     return (
       <Fragment>
-        <div className="card">
-          <span className="card-title">GRAPH</span>
-          {this.renderGraph()}
-        </div>
+        {this.props.showGraph ? (
+          <div className="card">
+            <span className="card-title">GRAPH</span>
+            {this.renderGraph()}
+          </div>
+        ) : null}
 
         <div className="card">
           <span className="card-title">CONSOLE</span>
@@ -199,10 +201,12 @@ export default class Visualizer extends Component {
   }
 
   renderLog() {
+    const className = this.props.showGraph ? 'log' : 'log full-height';
+
     const animation = 'animated slideInLeft';
 
     return (
-      <ul ref={node => this.scrollDown(node)} className="log">
+      <ul ref={node => this.scrollDown(node)} className={className}>
         {this.state.log.map((logItem, index) => {
           if (logItem.type === 'console') {
             return (

@@ -19,19 +19,35 @@ import promiseChainWithErrors from './examples/promise-chain-with-errors';
 import complexTree from './examples/complex-tree';
 import deterministicOrder from './examples/deterministic-order';
 import promiseCache from './examples/promise-cache';
+import promiseAll from './examples/promise-all';
+import promiseRace from './examples/promise-race';
 
 const examples = [
-  { name: 'Simple then', code: simpleThen },
-  { name: 'Simple catch', code: simpleCatch },
-  { name: 'Then chain', code: thenChain },
-  { name: 'Then chain catching errors', code: thenChainSingleCatch },
-  { name: 'Then chain error in then', code: thenChainErrorInThen },
-  { name: 'Error recovery', code: errorRecovery },
-  { name: 'Deterministic order', code: deterministicOrder },
-  { name: 'Promises are cachable', code: promiseCache },
-  { name: 'Promise chain', code: promiseChain },
-  { name: 'Promise chain with errors', code: promiseChainWithErrors },
-  { name: 'Complex tree', code: complexTree }
+  { name: 'Simple then', code: simpleThen, showGraph: true },
+  { name: 'Simple catch', code: simpleCatch, showGraph: true },
+  { name: 'Then chain', code: thenChain, showGraph: true },
+  {
+    name: 'Then chain catching errors',
+    code: thenChainSingleCatch,
+    showGraph: true
+  },
+  {
+    name: 'Then chain error in then',
+    code: thenChainErrorInThen,
+    showGraph: true
+  },
+  { name: 'Error recovery', code: errorRecovery, showGraph: true },
+  { name: 'Deterministic order', code: deterministicOrder, showGraph: true },
+  { name: 'Promises are cachable', code: promiseCache, showGraph: true },
+  { name: 'Promise chain', code: promiseChain, showGraph: true },
+  {
+    name: 'Promise chain with errors',
+    code: promiseChainWithErrors,
+    showGraph: true
+  },
+  { name: 'Complex tree', code: complexTree, showGraph: true },
+  { name: 'Promise.all', code: promiseAll, showGraph: false },
+  { name: 'Promise.race', code: promiseRace, showGraph: false }
 ];
 
 const EDITOR_WIDTH = 550;
@@ -41,14 +57,17 @@ export default class App extends Component {
     code: simpleThen,
     visualizerWidth: 0,
     hasError: false,
-    showEditor: true
+    showEditor: true,
+    showGraph: true
   };
 
   onSelectExample(index) {
-    // Hide the editor temporarily so it renders with the new code.
-    this.setState({ showEditor: false });
+    const example = examples[index];
 
-    this.executeCode(examples[index].code);
+    // Hide the editor temporarily so it renders with the new code.
+    this.setState({ showEditor: false, showGraph: example.showGraph });
+
+    this.executeCode(example.code);
 
     setTimeout(() => {
       this.setState({ showEditor: true });
@@ -104,7 +123,7 @@ export default class App extends Component {
           ref={node => this.calculateWidthForVisualizer(node)}
           style={{ width: `calc(100% - ${EDITOR_WIDTH + 20}px)` }}
         >
-          {this.state.hasError ? <Error/> : this.renderVisualizer()}
+          {this.state.hasError ? <Error /> : this.renderVisualizer()}
         </div>
       </div>
     );
@@ -118,6 +137,7 @@ export default class App extends Component {
     return (
       <Visualizer
         width={this.state.visualizerWidth}
+        showGraph={this.state.showGraph}
         code={this.state.code}
         chain={(visualize, LOGGER) => {
           // Make MadPromise available under window, because webpack

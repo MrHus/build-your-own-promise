@@ -41,6 +41,10 @@ body {
   overflow: auto;
 }
 
+.log.full-height {
+  height: calc(100vh - 74px);
+}
+
 .log li {
   list-style: none;
   font-family: 'Monaco', Courier, monospace;
