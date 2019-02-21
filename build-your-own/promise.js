@@ -8,6 +8,10 @@ function isMadPromise(object) {
   );
 }
 
+function passThrough(value) {
+  return value;
+}
+
 export function MadPromise(deferred) {
   let status = 'PENDING';
   let value = null;
@@ -34,10 +38,12 @@ export function MadPromise(deferred) {
 
         if (isMadPromise(rejectedValue)) {
           rejectedValue.then(v => resolve(v)).catch(e => reject(e));
-        } else if (value === rejectedValue) {
-          reject(rejectedValue);
         } else {
-          resolve(rejectedValue);
+          if (onReject === passThrough) {
+            reject(rejectedValue);
+          } else {
+            resolve(rejectedValue);
+          }
         }
       }
     }, 1);
@@ -69,7 +75,7 @@ export function MadPromise(deferred) {
     callbacks = null;
   }
 
-  function then(onResolve, onReject = e => e) {
+  function then(onResolve, onReject = passThrough) {
     return MadPromise((resolve, reject) => {
       const callback = { resolve, onResolve, reject, onReject };
 
@@ -82,7 +88,7 @@ export function MadPromise(deferred) {
   }
 
   function _catch(onReject) {
-    return then(v => v, onReject);
+    return then(passThrough, onReject);
   }
 
   deferred(resolve, reject);
@@ -133,7 +139,6 @@ MadPromise.race = function(promises) {
           }
         })
         .catch(error => {
-          console.log('race', done);
           if (!done) {
             done = true;
             reject(error);

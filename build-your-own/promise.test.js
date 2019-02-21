@@ -105,6 +105,26 @@ describe('MadPromise', () => {
         });
     });
 
+    it('should allow a catch to recover with the same value it was rejected with', done => {
+      const p = MadPromise((resolve, reject) => {
+        setTimeout(() => reject(42), 100);
+      });
+
+      p.then(v => v * 2)
+        .then(age => ({
+          name: 'Maarten Hus',
+          age
+        }))
+        .then(person => {
+          console.log(person);
+        })
+        .catch(e => 42)
+        .then(recoveredValue => {
+          expect(recoveredValue).toBe(42);
+          done();
+        });
+    });
+
     it('should when a then causes an error allow catch to recover from errors', done => {
       const p = MadPromise(resolve => {
         setTimeout(() => resolve(42), 100);
