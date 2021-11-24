@@ -6,7 +6,7 @@ import Error from './ui/Error';
 
 import { MadPromise, resetName } from './MadPromise';
 
-import '../node_modules/animate.css';
+import 'animate.css';
 
 import simpleThen from './examples/simple-then';
 import simpleCatch from './examples/simple-catch';

@@ -22,7 +22,7 @@ and start building.
 
 # Prerequisites
 
-This project has been tested on Node.js `8.11.3` with NPM: `5.6.0`.
+This project has been tested on Node.js `16.13.0` with NPM: `8.1.0`.
 
 # Installation
 

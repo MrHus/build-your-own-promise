@@ -141,7 +141,7 @@ export default class Visualizer extends Component {
       const transform = `translate(${node.x},${node.y + 50})`;
 
       const className =
-        node.data.status === 'PENDING' ? '' : 'animated rubberBand';
+        node.data.status === 'PENDING' ? '' : 'animate__animated animate__rubberBand';
 
       return (
         <g className="node" key={node.data.name} transform={transform}>
@@ -203,7 +203,7 @@ export default class Visualizer extends Component {
   renderLog() {
     const className = this.props.showGraph ? 'log' : 'log full-height';
 
-    const animation = 'animated slideInLeft';
+    const animation = 'animate__animated animate__slideInLeft';
 
     return (
       <ul ref={node => this.scrollDown(node)} className={className}>

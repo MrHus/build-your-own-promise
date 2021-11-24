@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 
 import AceEditor from 'react-ace';
-
-import 'brace/mode/javascript';
-import 'brace/theme/tomorrow';
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/theme-tomorrow_night_eighties";
 
 export default class Editor extends Component {
   state = {
@@ -23,7 +22,7 @@ export default class Editor extends Component {
       <div>
         <AceEditor
           mode="javascript"
-          theme="tomorrow"
+          theme="tomorrow_night_eighties"
           onChange={code => this.codeChanged(code)}
           name="UNIQUE_ID_OF_DIV"
           fontSize={16}
