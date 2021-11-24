@@ -17,38 +17,6 @@ export function MadPromise(deferred) {
   let value = null;
   let callbacks = [];
 
-  function handleCallback({ resolve, onResolve, reject, onReject }) {
-    setTimeout(() => {
-      if (status === 'fulfilled') {
-        try {
-          const resolvedValue = onResolve(value);
-
-          if (isMadPromise(resolvedValue)) {
-            resolvedValue.then(v => resolve(v)).catch(e => reject(e));
-          } else {
-            resolve(resolvedValue);
-          }
-        } catch (e) {
-          const rejectedValue = onReject(e);
-
-          reject(rejectedValue);
-        }
-      } else {
-        const rejectedValue = onReject(value);
-
-        if (isMadPromise(rejectedValue)) {
-          rejectedValue.then(v => resolve(v)).catch(e => reject(e));
-        } else {
-          if (onReject === passThrough) {
-            reject(rejectedValue);
-          } else {
-            resolve(rejectedValue);
-          }
-        }
-      }
-    }, 1);
-  }
-
   function resolve(value) {
     transition('fulfilled', value);
   }
@@ -72,6 +40,38 @@ export function MadPromise(deferred) {
     callbacks = null;
   }
 
+  function handleCallback({ resolve, onResolve, reject, onReject }) {
+    setTimeout(() => {
+      if (status === 'fulfilled') {
+        try {
+          const result = onResolve(value);
+
+          unpackResult(result, resolve, reject);
+        } catch (e) {
+          const rejectedValue = onReject(e);
+
+          reject(rejectedValue);
+        }
+      } else {
+        if (onReject === passThrough) {
+          reject(value);
+        } else {
+          const result = onReject(value);
+
+          unpackResult(result, resolve, reject);
+        }
+      }
+    }, 1);
+  }
+
+  function unpackResult(result, resolve, reject) {
+    if (isMadPromise(result)) {
+      result.then(resolve).catch(reject);
+    } else {
+      resolve(result);
+    }
+  }
+
   function then(onResolve, onReject = passThrough) {
     return MadPromise((resolve, reject) => {
       const callback = { resolve, onResolve, reject, onReject };
@@ -92,55 +92,35 @@ export function MadPromise(deferred) {
 
   return {
     then,
-    catch: _catch
+    catch: _catch,
   };
 }
 
-MadPromise.all = function(promises) {
-  let promisesResolved = 0;
-  let rejected = false;
+MadPromise.all = function (promises) {
+  let count = 0;
 
   return MadPromise((resolve, reject) => {
     const results = [];
 
     promises.forEach((promise, index) => {
       promise
-        .then(value => {
-          promisesResolved += 1;
+        .then((value) => {
+          count += 1;
           results[index] = value;
 
-          if (promisesResolved === promises.length) {
+          if (count === promises.length) {
             resolve(results);
           }
         })
-        .catch(error => {
-          if (!rejected) {
-            rejected = true;
-            reject(error);
-          }
-        });
+        .catch(reject);
     });
   });
 };
 
-MadPromise.race = function(promises) {
-  let done = false;
-
+MadPromise.race = function (promises) {
   return MadPromise((resolve, reject) => {
-    promises.forEach(promise => {
-      promise
-        .then(value => {
-          if (!done) {
-            done = true;
-            resolve(value);
-          }
-        })
-        .catch(error => {
-          if (!done) {
-            done = true;
-            reject(error);
-          }
-        });
+    promises.forEach((promise) => {
+      promise.then(resolve).catch(reject);
     });
   });
 };
