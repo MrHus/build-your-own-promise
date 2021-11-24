@@ -13,13 +13,13 @@ function passThrough(value) {
 }
 
 export function MadPromise(deferred) {
-  let status = 'PENDING';
+  let status = 'pending';
   let value = null;
   let callbacks = [];
 
   function handleCallback({ resolve, onResolve, reject, onReject }) {
     setTimeout(() => {
-      if (status === 'RESOLVED') {
+      if (status === 'fulfilled') {
         try {
           const resolvedValue = onResolve(value);
 
@@ -49,29 +49,26 @@ export function MadPromise(deferred) {
     }, 1);
   }
 
-  function resolve(v) {
-    if (status !== 'PENDING') {
-      throw new Error('Promise cannot be resolved twice');
-    }
-
-    status = 'RESOLVED';
-
-    value = v;
-
-    callbacks.forEach(handleCallback);
-    callbacks = null;
+  function resolve(value) {
+    transition('fulfilled', value);
   }
 
-  function reject(e) {
-    if (status !== 'PENDING') {
-      throw new Error('Promise cannot be rejected twice');
+  function reject(reason) {
+    transition('rejected', reason);
+  }
+
+  function transition(newStatus, newValue) {
+    if (status !== 'pending') {
+      return;
     }
 
-    status = 'REJECTED';
+    status = newStatus;
 
-    value = e;
+    value = newValue;
 
     callbacks.forEach(handleCallback);
+
+    // Clean up callbacks to prevent memory leaks.
     callbacks = null;
   }
 
@@ -79,7 +76,7 @@ export function MadPromise(deferred) {
     return MadPromise((resolve, reject) => {
       const callback = { resolve, onResolve, reject, onReject };
 
-      if (status === 'PENDING') {
+      if (status === 'pending') {
         callbacks.push(callback);
       } else {
         handleCallback(callback);
